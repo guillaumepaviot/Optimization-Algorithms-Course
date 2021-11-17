@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov  3 12:14:11 2021
-
-@author: aboumessouer
-"""
-
 import numpy as np
 import unittest
 import sys
@@ -20,28 +12,28 @@ sys.path.append("..")
 from optimization_algorithms.utils.finite_diff import *
 from optimization_algorithms.interface.mathematical_program import MathematicalProgram
 
-from aà_quadratic_function.solution import Problem1
+from solution import Problem0
 
 class testProblem(unittest.TestCase):
     """
     test on problem A
     """
 
-    problem = Problem1
+    problem = Problem0
 
     def testValue(self):
-        C = np.array([[1,0],[0,10]])
+        C = np.ones((2,2))
         problem = self.problem(C)
         value = problem.evaluate(np.ones(2))[0][0]
         self.assertAlmostEqual(value,8)
 
 
-    def jacobian(self):
+    def testJacobian(self):
         """
         """
         C = np.ones((2,2))
         problem = self.problem(C)
-        flag , _ , _= check_mathematical_program(problem.evaluate, np.array([-1,.5, .1])  , 1e-5)
+        flag , _ , _= check_mathematical_program(problem.evaluate, np.array([-1,.5])  , 1e-5)
         self.assertTrue(flag)
 
 
@@ -61,5 +53,20 @@ class testProblem(unittest.TestCase):
         self.assertTrue(flag)
 
 
+# usage:
+# print results in terminal
+# python3 test.py
+# store results in file 
+# python3 test.py out.log
+
 if __name__ == "__main__":
-   unittest.main()
+    if len(sys.argv) == 2 :
+        log_file = sys.argv.pop()
+        with open(log_file, "w") as f:
+           runner = unittest.TextTestRunner(f, verbosity=2)
+           unittest.main(testRunner=runner)
+    else:
+        unittest.main()
+
+
+

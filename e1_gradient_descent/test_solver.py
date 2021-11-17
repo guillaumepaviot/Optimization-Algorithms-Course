@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov  5 08:55:55 2021
-
-@author: aboumessouer
-"""
-
 import numpy as np
 import sys
 sys.path.append("..")
