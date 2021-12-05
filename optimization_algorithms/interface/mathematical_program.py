@@ -1,6 +1,6 @@
-
 import numpy as np
-from .objective_type  import OT
+from .objective_type import OT
+
 
 class MathematicalProgram():
     """
@@ -26,11 +26,10 @@ class MathematicalProgram():
 
     """
 
-    def  __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         pass
 
-
-    def evaluate(self, x) :
+    def evaluate(self, x):
         """
         query the NLP at a point x; returns the tuple (phi,J), which is
         the feature vector and its Jacobian; features define cost terms, 
@@ -49,8 +48,7 @@ class MathematicalProgram():
         """
         raise NotImplementedError()
 
-
-    def getDimension(self) : 
+    def getDimension(self):
         """
         return the dimensionality of x
 
@@ -61,7 +59,7 @@ class MathematicalProgram():
         """
         raise NotImplementedError()
 
-    def getBounds(self)  : 
+    def getBounds(self):
         """
         returns the tuple (b_lo,b_up), where both vectors are of same dimensionality of x (or size zero, if there are no bounds)
 
@@ -72,9 +70,9 @@ class MathematicalProgram():
 
         """
         n = self.getDimension()
-        return  (  np.repeat( -np.Inf  , n ) , np.repeat( +np.Inf , n  ) ) 
+        return (np.repeat(-np.Inf, n), np.repeat(+np.Inf, n))
 
-    def getFeatureTypes(self) :
+    def getFeatureTypes(self):
         """
         returns
         -----
@@ -83,7 +81,7 @@ class MathematicalProgram():
         """
         return [OT.f]
 
-    def getFHessian(self, x) : 
+    def getFHessian(self, x):
         """
         returns Hessian of the sum of $f$-objectives
 
@@ -94,7 +92,7 @@ class MathematicalProgram():
         """
         raise NotImplementedError()
 
-    def getInitializationSample(self) : 
+    def getInitializationSample(self):
         """
         returns a sample (e.g. uniform within bounds) to initialize an optimization -- not necessarily feasible
 
@@ -103,9 +101,9 @@ class MathematicalProgram():
         x:  np.array 1-D
 
         """
-        return  np.ones(self.getDimension())
+        return np.ones(self.getDimension())
 
-    def report(self, verbose): 
+    def report(self, verbose):
         """
         displays semantic information on the last query
 

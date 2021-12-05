@@ -1,5 +1,5 @@
-
 from .mathematical_program import MathematicalProgram
+
 
 class NLPSolver():
     """
@@ -17,12 +17,13 @@ class NLPSolver():
     MathematicalProgram
 
     """
+
     def __init__(self):
         """
         """
         self.problem = MathematicalProgram()
 
-    def setProblem(self, mathematical_program) :
+    def setProblem(self, mathematical_program):
         """
 
         Arguments
@@ -32,7 +33,7 @@ class NLPSolver():
         """
         self.problem = mathematical_program
 
-    def solve(self) :
+    def solve(self):
         """
         Solve current nonlinear program. Returns the convergence point x 
        (1-D np.array)

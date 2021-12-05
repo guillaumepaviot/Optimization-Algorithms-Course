@@ -16,7 +16,7 @@ from solution import Problem0
 
 class testProblem(unittest.TestCase):
     """
-    test on problem A
+    test Problem0
     """
 
     problem = Problem0

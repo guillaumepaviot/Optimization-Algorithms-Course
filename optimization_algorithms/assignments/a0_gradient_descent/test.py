@@ -18,7 +18,7 @@ from solution import Solver0
 
 class testSolver0(unittest.TestCase):
     """
-    test on problem A
+    test Solver0
     """
     Solver = Solver0
 

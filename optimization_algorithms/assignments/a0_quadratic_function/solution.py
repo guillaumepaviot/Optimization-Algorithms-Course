@@ -10,6 +10,7 @@ class Problem0( MathematicalProgram ):
     """
 
     def __init__(self,C):
+        pass
 
         # in case you want to initialize some class members or so...
 

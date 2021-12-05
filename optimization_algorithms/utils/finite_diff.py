@@ -1,19 +1,17 @@
-
-
 import numpy as np
 
 
-def finite_diff_grad(f,x,eps):
+def finite_diff_grad(f, x, eps):
     n = x.size
     grad = np.zeros(n)
     for i in range(n):
         ei = np.zeros(n)
-        ei[i] = eps 
-        grad[i] = (f( x +  ei) - f( x - ei)) / ( 2 * eps)
+        ei[i] = eps
+        grad[i] = (f(x + ei) - f(x - ei)) / (2 * eps)
     return grad
 
 
-def finite_diff_hess(f,x,eps):
+def finite_diff_hess(f, x, eps):
     """
     Arguments:
     ----
@@ -27,23 +25,21 @@ def finite_diff_hess(f,x,eps):
 
     """
     n = x.size
-    hess = np.zeros((n,n))
+    hess = np.zeros((n, n))
     for i in range(n):
-        for j in range(i,n):
+        for j in range(i, n):
             ei = np.zeros(n)
             ej = np.zeros(n)
-            ei[i] = eps 
-            ej[j] = eps 
-            hess[i,j] = (f( x +  ei + ej) + f( x - ei - ej)
-                    - f( x + ei - ej) - f(x - ei + ej  ) ) / ( 4 * eps * eps)
+            ei[i] = eps
+            ej[j] = eps
+            hess[i, j] = (f(x + ei + ej) + f(x - ei - ej)
+                          - f(x + ei - ej) - f(x - ei + ej)) / (4 * eps * eps)
             if i != j:
-                hess[j,i] = hess[i,j]
+                hess[j, i] = hess[i, j]
     return hess
 
 
-
-
-def check_mathematical_program( fun, x, eps):
+def check_mathematical_program(fun, x, eps, verbose=False):
     """
     Input:
     fun: ( np.array 1d , np.array 2d ) = fun( np.array 1d)
@@ -62,11 +58,10 @@ def check_mathematical_program( fun, x, eps):
     J_num = np.zeros_like(J)
     for i in range(n):
         ei = np.zeros(n)
-        ei[i] = eps 
-        J_num[:,i] = (fun( x +  ei)[0] - fun( x - ei)[0]) / ( 2 * eps)
-    return np.allclose( J , J_num , atol=10*eps) , J , J_num
-
-
-
-
-
+        ei[i] = eps
+        J_num[:, i] = (fun(x + ei)[0] - fun(x - ei)[0]) / (2 * eps)
+    if verbose:
+        print("J\n{}".format(J))
+        print("J_num\n{}".format(J_num))
+        print("J - J_num \n{}".format(J - J_num))
+    return np.allclose(J, J_num, atol=10 * eps), J, J_num
