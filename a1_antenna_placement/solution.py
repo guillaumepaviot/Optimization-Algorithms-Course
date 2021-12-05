@@ -30,11 +30,13 @@ class AntennaPlacement(MathematicalProgram):
         """
 
         # add the main code here! E.g. define methods to compute value y and Jacobian J
-        expo = np.exp(-np.linalg.norm(x-self.P, ord=2, axis=1)**2)
-        y = -self.w @ expo.T
-        J = -2 * self.w @ ((x-self.P).T @ expo.T).T
-        print(J)
-        return np.array([y]) , J.reshape(1, -1)
+        y = 0
+        J = np.zeros((2,))
+        for i in range(self.getDimension()):
+            y = y + self.w[i]*np.exp(-np.linalg.norm(x-self.P[i])**2)
+            J = J + self.w[i]*np.exp(-np.linalg.norm(x-self.P[i])**2)*2*(x-self.P[i])
+        return np.array([-y]) , np.array([J])
+
 
 
     def getDimension(self):
@@ -53,9 +55,15 @@ class AntennaPlacement(MathematicalProgram):
         MathematicalProgram.getFHessian
         """
         # add code to compute the Hessian matrix
-        expo = np.exp(-np.linalg.norm(x-self.P, ord=2, axis=1)**2)
-        H = 2*np.sum(self.w.T@expo)*np.eye(self.getDimension()) - 4*np.sum(self.w.T@expo*(x-self.P)*(x-self.P).T)
+        H = np.zeros((2,2))
+        for i in range(self.getDimension()):
+            expo = np.exp(-np.linalg.norm(x-self.P[i])**2)
+            H[0,0] = H[0,0]+self.w[i]*(2*expo - 2*x[0]*2*(x[0]-self.P[i][0])*expo +2*self.P[i][0]*2*(x[0]-self.P[i][0])*expo)
+            H[1,1] = H[1,1]+self.w[i]*(2*expo - 2*x[1]*2*(x[1]-self.P[i][1])*expo +2*self.P[i][1]*2*(x[1]-self.P[i][1])*expo)
+            H[1,0] = H[1,0]+self.w[i]*(-2*x[0]*2*(x[1]-self.P[i][1])*expo+2*self.P[i][0]*2*(x[1]-self.P[i][1])*expo)
+            H[0,1] = H[0,1]+self.w[i]*(-2*x[1]*2*(x[0]-self.P[i][0])*expo+2*self.P[i][1]*2*(x[0]-self.P[i][0])*expo)
         return H
+
 
     def getInitializationSample(self):
         """
