@@ -16,7 +16,6 @@ class SolverUnconstrained(NLPSolver):
         NLPSolver.__init__
         """
         # in case you want to initialize some class members or so...
-        self.time_limit = 600
         self.verbose = verbose
         self.kwargs = kwargs
     
@@ -31,41 +30,41 @@ class SolverUnconstrained(NLPSolver):
         self.index_r = [i for i, x in enumerate(types) if x == OT.sos]
 
 
-    def calcDelta(self, phi, J, H, lamda, approx=False):
+    def calcDelta(self, fx, grad, H, lamda, approx=False):
         if approx: D = H + lamda * np.eye(H.shape[0])
         else:  D = H
         try:
             D_inv = np.linalg.inv(D)
-            delta = -1*np.matmul(D_inv, J.T)
+            delta = -1*np.matmul(D_inv, grad.T)
         except:
-            delta = np.divide(-J, abs(J + 1e-5))
+            delta = np.divide(-grad, abs(grad + 1e-5))
             pass
 
         if approx:
-            delta = np.matmul(delta,phi)
-            J = 2*np.matmul(J.T, phi)
-        if np.matmul(J, delta)>0:
-            delta = np.divide(-J, abs(J+1e-5))
+            delta = np.matmul(delta,fx)
+            grad = 2*np.matmul(grad.T, fx)
+        if np.matmul(grad, delta)>0:
+            delta = np.divide(-grad, abs(grad+1e-5))
         return delta
 
-    def getHessian(self, x, J):
+    def getHessian(self, x, grad):
         try:
             if len(self.index_r) > 0: NotImplementedError()
             H = self.problem.getFHessian(x)
             approx = False
         except NotImplementedError:
-            H =  2*np.matmul(J.T, J)
+            H =  2*np.matmul(grad.T, grad)
             approx = True
         
         return H, approx
 
 
-    def computeCost(self, phi):
+    def computeCost(self, fx):
         c = 0
         if len(self.index_f) > 0:
-            c += phi[self.index_f][0]
+            c += fx[self.index_f][0]
         if len(self.index_r) > 0:
-            c += phi[self.index_r].T @ phi[self.index_r]
+            c += fx[self.index_r].T @ fx[self.index_r]
         return c
 
     def solve(self):
@@ -94,65 +93,61 @@ class SolverUnconstrained(NLPSolver):
 
         self.dim = self.problem.getDimension()
 
-        start = time.time()
+        start_time = time.time()
 
         iteration = 0
         x = self.kwargs.get("x_init", self.problem.getInitializationSample())
         approx = False
-        phi, J = self.problem.evaluate(x)
+        fx, grad = self.problem.evaluate(x)
         iteration += 1
-        phi_o = phi
-        H, approx = self.getHessian(x, J)
+        fx_o = fx
+        if self.dim <=3:
+            print(f"Problem : {self.problem.report(verbose=True)} \n x_init = {x} \nfx_init = {fx} \n")
+        H, approx = self.getHessian(x, grad)
         
-        if J.shape[0] == 1:
-            J = J[0]
-        delta = self.calcDelta(phi, J, H, lamda, approx = approx)
+        if grad.shape[0] == 1:
+            grad = grad[0]
+        delta = self.calcDelta(fx, grad, H, lamda, approx = approx)
 
         while np.linalg.norm(alpha*delta, np.inf) > theta:
-            if iteration > 1000 or time.time()-start > self.time_limit : break
             x_new = x + alpha*delta
-            phi_n, J_n = self.problem.evaluate(x_new)
+            fx_n, grad_n = self.problem.evaluate(x_new)
             iteration += 1
-            H_n, approx = self.getHessian(x_new, J_n)
+            H_n, approx = self.getHessian(x_new, grad_n)
            
-            if J_n.shape[0] == 1:
-                J_o = J_n[0]
-                J_n = J_n[0]
+            if grad_n.shape[0] == 1:
+                grad_o = grad_n[0]
+                grad_n = grad_n[0]
             else:
-                J_o = J_n
-            c_new = self.computeCost(phi_n)
-            c = self.computeCost(phi_o)
-            phi_o = phi_n
+                grad_o = grad_n
+            c_new = self.computeCost(fx_n)
+            c = self.computeCost(fx_o)
+            fx_o = fx_n
             if approx:
-                J_o = 2*np.matmul(J_o.T, phi_o)
+                grad_o = 2*np.matmul(grad_o.T, fx_o)
 
-            while (c_new) > (c + rho_ls * np.matmul(J_o.T,(alpha * delta))):
-                if iteration>1000 or time.time()-start > self.time_limit: break
+            while (c_new) > (c + rho_ls * np.matmul(grad_o.T,(alpha * delta))):
                 alpha *= rho_alpha_m
-                delta = self.calcDelta(phi_n, J_n, H_n, lamda, approx=approx)
+                delta = self.calcDelta(fx_n, grad_n, H_n, lamda, approx=approx)
                 x_new_t = x_new + alpha * delta
-                phi_o = phi_n
-                phi_n, J_n = self.problem.evaluate(x_new_t)
+                fx_o = fx_n
+                fx_n, grad_n = self.problem.evaluate(x_new_t)
                 iteration += 1
-                H_n, approx = self.getHessian(x_new_t, J_n)
+                H_n, approx = self.getHessian(x_new_t, grad_n)
                 
-                if J_n.shape[0] == 1:
-                    J_n = J_n[0]
-                c_new = self.computeCost(phi_n)
-                c = self.computeCost(phi_o)
+                if grad_n.shape[0] == 1:
+                    grad_n = grad_n[0]
+                c_new = self.computeCost(fx_n)
+                c = self.computeCost(fx_o)
             try:
                 x_new = x_new_t
             except:
                 pass
             x = x_new
             alpha = min(rho_alpha_p*alpha, 1)
-            delta = self.calcDelta(phi_n, J_n, H_n, lamda, approx = approx )
+            delta = self.calcDelta(fx_n, grad_n, H_n, lamda, approx = approx )
 
-        if iteration > 1000:
-            print('Solution not found. Max. iterations reached.')
-        if time.time()-start > self.time_limit:
-            print('Solution not found. Max. time limit reached.')
         # finally:
-        print('Required evaluations:', iteration)
+        print(f"Required evaluations: {iteration} \n Time needed : {time.time() - start_time :.3f}s \n")
         return x
 
