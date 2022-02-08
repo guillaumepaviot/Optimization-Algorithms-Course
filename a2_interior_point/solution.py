@@ -99,7 +99,8 @@ class SolverInteriorPoint(NLPSolver):
         start_time = time.time()
 
         mu_iter = 1
-        gradient_iter = 1
+        newton_iter = 1
+        backtracking_iter = 0
         count = 1
 
         fx, grad, H = self.getVars(x, mu)
@@ -109,37 +110,41 @@ class SolverInteriorPoint(NLPSolver):
         while mu_iter <= 1000:
             xt = x.copy()
             
-            while gradient_iter <= 1000:
+            while newton_iter <= 1000:
                 fx, grad, H = self.getVars(x, mu)
                 count += 1
                 delta = np.linalg.solve(H + lamda*np.eye(self.dim), -grad)
-                if np.linalg.norm(delta) > 0:
+                if grad.T @ delta > 0:
                     delta = delta/np.linalg.norm(delta,2)
                 
                 fx_n, grad_n, H_n = self.getVars(x + alpha *delta, mu)
                 count += 1
 
-                while fx_n > (fx + rho_ls * np.matmul(grad.T,(alpha * delta))):
+                backtrack = 0
+                while fx_n > (fx + rho_ls * np.matmul(grad.T,(alpha * delta))) and backtrack < 100:
                     alpha = rho_alpha_m * alpha
                     fx_n, grad_n, H_n = self.getVars(x + alpha *delta, mu)
                     count += 1
+                    backtrack += 1
+                
+                backtracking_iter += backtrack
                 
                 x += alpha * delta            
                 alpha *= rho_alpha_p
                 
-                if np.linalg.norm(alpha * delta) < theta:
-                    break
-                gradient_iter += 1
+                if np.linalg.norm(alpha * delta) < theta : break
+                newton_iter += 1
                 
-            if np.linalg.norm(xt-x) < mu_theta:
-                print(f"Solution : {x}")
-                print(f"Calls to program : {count}")
-                print(f"Iterations over mu : {mu_iter}")
-                print(f"Backtracking iterations : {gradient_iter}")
-                print(f"Time elapsed : {time.time()-start_time}s")
-                print("\n")
-                break
+            if np.linalg.norm(xt-x) < mu_theta : break
                 
             mu_iter += 1
             mu *= rho_mu
+
+        print(f"Solution : {x}")
+        print(f"Calls to program : {count}")
+        print(f"Iterations over mu : {mu_iter}")
+        print(f"Newton steps : {newton_iter}")
+        print(f"Backtracking iterations : {backtracking_iter}")
+        print(f"Time elapsed : {time.time()-start_time}s")
+        print("\n")
         return x

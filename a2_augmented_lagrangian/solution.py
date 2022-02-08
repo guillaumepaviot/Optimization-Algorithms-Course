@@ -136,7 +136,7 @@ class SolverAugmentedLagrangian(NLPSolver):
                 fx, grad, H = self.getVars(x, mu, nu)
                 count += 1
                 delta = np.linalg.solve(H + lamda*np.eye(self.dim), -grad)
-                if np.linalg.norm(delta) > 0:
+                if grad.T @ delta > 0:
                     delta = delta/np.linalg.norm(delta,2)
                 
                 fx_n, grad_n, H_n = self.getVars(x + alpha *delta, mu, nu)
@@ -154,8 +154,7 @@ class SolverAugmentedLagrangian(NLPSolver):
                 x += alpha * delta            
                 alpha *= rho_alpha_p
                 
-                if np.linalg.norm(alpha * delta) < theta:
-                    break
+                if np.linalg.norm(alpha * delta) < theta : break
                 newton_iter += 1
 
 
@@ -167,11 +166,7 @@ class SolverAugmentedLagrangian(NLPSolver):
                 for i in self.index_h:
                     self.kappa_lagrangian[i] = self.kappa_lagrangian[i] +  2 * nu * phi[i] 
                 
-            if np.linalg.norm(xt-x) < theta and np.all(phi[self.index_g] < epsilon) and np.all(abs(phi[self.index_h]) < epsilon):
-                break
-            
-
-
+            if np.linalg.norm(xt-x) < theta and np.all(phi[self.index_g] < epsilon) and np.all(abs(phi[self.index_h]) < epsilon) : break
                 
             nu *=rho_nu
             mu *= rho_mu

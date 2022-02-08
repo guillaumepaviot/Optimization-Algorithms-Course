@@ -42,7 +42,7 @@ class LQR(MathematicalProgram):
         """
         Arguments
         -----
-        T: integer
+        K: integer
         A: np.array 2-D
         B: np.array 2-D
         Q: np.array 2-D
@@ -50,6 +50,23 @@ class LQR(MathematicalProgram):
         yf: np.array 1-D
         """
         # in case you want to initialize some class members or so...
+        self.K = K
+        self.A = A
+        self.B = B
+        self.Q = Q
+        self.R = R
+        self.yf = yf
+        self.n = len(yf)
+        self.H = np.zeros((K*self.n, 2*K*self.n))
+        
+        
+        for t in range(self.K):
+            if t > 0:
+                self.H[self.n*t : self.n*(t + 1), self.n * (2*t - 1) : self.n * 2*t] = - A
+            
+            self.H[self.n*t : self.n*(t + 1), self.n * 2*t : self.n * (2*t + 1)] = - B
+            self.H[self.n*t : self.n*(t + 1), self.n * (2*t + 1) : self.n * (2*t + 2)] = np.eye(self.n)
+
 
     def evaluate(self, x):
         """
@@ -66,11 +83,45 @@ class LQR(MathematicalProgram):
         # J is a 2-D np.array of dimensions (m,n)
         # where m is the number of features and n is dimension of x
         # return  y  , J
+        u = x.reshape((2 * self.K, self.n))[ : : 2]
+        y = x.reshape((2 * self.K, self.n))[1 : : 2]
+        
+        sos = np.array([np.trace(.5 * u @ self.R @ u.T)+np.trace(.5 * y @ self.Q @ y.T)])
+
+        Jsos = np.zeros((self.getDimension()))
+    
+        for t in range(self.K):
+            Jsos[self.n * 2 * t : self.n * (2 * t + 1)] = self.R @ u[t]
+            Jsos[self.n * (2 * t + 1) : self.n * (2 * t + 2)] = self.Q @ y[t]
+            
+        Jsos = np.reshape(Jsos, (1, -1))
+        
+        
+        h_left = self.H @ x
+        Jh_left = self.H
+        
+        h_right = y[self.K - 1,:] - self.yf
+        Jh_right = np.zeros((self.n, 2 * self.K * self.n))
+        Jh_right[:, -self.n:] = np.eye(self.n)
+
+        phi = np.hstack((sos, h_left, h_right))        
+        J = np.hstack((Jsos[np.newaxis, ...], Jh_left[np.newaxis, ...], Jh_right[np.newaxis, ...]))[0, :, :]
+        return  phi, J
+
 
     def getFHessian(self, x):
         """
         """
         # return
+        dim = self.getDimension()
+        H = np.zeros((dim, dim))
+
+        for t in range(self.K):
+            H[self.n*2*t : self.n*(2*t + 1) , self.n*2*t : self.n*(2*t + 1)] = self.R
+            H[self.n*(2*t+1) : self.n*(2*t+2) , self.n*(2*t+1) : self.n*(2*t+2)] = self.Q
+
+        return H
+
 
     def getDimension(self):
         """
@@ -79,6 +130,7 @@ class LQR(MathematicalProgram):
         MathematicalProgram.getDimension
         """
         # return
+        return 2 * self.n * self.K
 
     def getInitializationSample(self):
         """
@@ -98,3 +150,4 @@ class LQR(MathematicalProgram):
         MathematicalProgram.getFeatureTypes
         """
         # return
+        return [OT.f] + [OT.eq] * ((self.K + 1) * self.n)
