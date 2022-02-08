@@ -31,8 +31,7 @@ class SolverUnconstrained(NLPSolver):
 
 
     def calcDelta(self, fx, grad, H, lamda, approx=False):
-        if approx: D = H + lamda * np.eye(H.shape[0])
-        else:  D = H
+        D = H + lamda * np.eye(H.shape[0])
         try:
             D_inv = np.linalg.inv(D)
             delta = -1*np.matmul(D_inv, grad.T)
@@ -87,9 +86,7 @@ class SolverUnconstrained(NLPSolver):
         # tolerance  
         theta = self.kwargs.get("theta", 1e-3)
         # damping
-        lamda = self.kwargs.get("lambda", 1e-3) # added
-        # metric
-        metric = self.kwargs.get("metric", np.identity(self.problem.getDimension()))
+        lamda = self.kwargs.get("lambda", 1e-3) 
 
         self.dim = self.problem.getDimension()
 
@@ -113,7 +110,11 @@ class SolverUnconstrained(NLPSolver):
             x_new = x + alpha*delta
             fx_n, grad_n = self.problem.evaluate(x_new)
             iteration += 1
+            print(f"x new {x_new}")
+            print(f"delta {delta}")
+            print(f"grad {grad_n}")
             H_n, approx = self.getHessian(x_new, grad_n)
+            print(f"H {H_n}")
            
             if grad_n.shape[0] == 1:
                 grad_o = grad_n[0]

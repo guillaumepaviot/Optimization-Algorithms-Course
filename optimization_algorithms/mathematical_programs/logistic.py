@@ -2,8 +2,12 @@ import sys
 import numpy as np
 import math
 
-from ..interface.mathematical_program import MathematicalProgram
-from ..interface.objective_type import OT
+try:
+    from ..interface.mathematical_program import MathematicalProgram
+    from ..interface.objective_type import OT
+except:
+    from interface.mathematical_program import MathematicalProgram
+    from interface.objective_type import OT
 
 
 class Logistic(MathematicalProgram):
@@ -94,7 +98,7 @@ class Logistic(MathematicalProgram):
         ------
         MathematicalProgram.getInitializationSample
         """
-        return np.array([1, 1, 1])
+        return np.array([1., 1., 1.])
 
     def report(self, verbose):
         """

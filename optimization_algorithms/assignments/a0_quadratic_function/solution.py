@@ -2,20 +2,19 @@ import numpy as np
 import sys
 sys.path.append("..")
 
-from optimization_algorithms.interface.mathematical_program import  MathematicalProgram
+from optimization_algorithms.interface.mathematical_program import MathematicalProgram
 
 
-class Problem0( MathematicalProgram ):
+class Problem0(MathematicalProgram):
     """
     """
 
-    def __init__(self,C):
+    def __init__(self, C):
         pass
 
         # in case you want to initialize some class members or so...
 
-
-    def evaluate(self, x) :
+    def evaluate(self, x):
         """
         See also:
         ----
@@ -27,9 +26,9 @@ class Problem0( MathematicalProgram ):
         # J = ...
 
         # and return as a tuple of arrays, namely of dim (1) and (1,n)
-        #return  np.array( [ y ] ) ,  J.reshape(1,-1)
+        # return  np.array( [ y ] ) ,  J.reshape(1,-1)
 
-    def getDimension(self) : 
+    def getDimension(self):
         """
         See Also
         ------
@@ -38,7 +37,7 @@ class Problem0( MathematicalProgram ):
         # return the input dimensionality of the problem, e.g.
         return 2
 
-    def getFHessian(self, x) : 
+    def getFHessian(self, x):
         """
         See Also
         ------
@@ -49,9 +48,9 @@ class Problem0( MathematicalProgram ):
         # H = ...
 
         # and return it
-        #return H
+        # return H
 
-    def getInitializationSample(self) : 
+    def getInitializationSample(self):
         """
         See Also
         ------
@@ -59,7 +58,7 @@ class Problem0( MathematicalProgram ):
         """
         return np.ones(self.getDimension())
 
-    def report(self , verbose ): 
+    def report(self, verbose):
         """
         See Also
         ------

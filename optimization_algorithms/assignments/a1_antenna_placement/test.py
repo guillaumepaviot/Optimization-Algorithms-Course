@@ -18,6 +18,9 @@ class testProblem(unittest.TestCase):
 
     problem = AntennaPlacement
 
+    def set_(self, problem):
+        self.problem = problem
+
     def generateProblem(self):
         P = [np.array([0, 0]), np.array([1, 0])]
         w = np.array([1, 0.5])
@@ -34,14 +37,16 @@ class testProblem(unittest.TestCase):
         self.assertAlmostEqual(value, - 1 * math.exp(- 2) - .5 * math.exp(-1))
 
     def testJacobian(self):
+        self.testValue()  # Jacobian requires value to be OK.
         problem = self.generateProblem()
-        x = np.array([-1, .5])
+        x = np.array([1, 1])
         flag, _, _ = check_mathematical_program(problem.evaluate, x, 1e-5)
         self.assertTrue(flag)
 
     def testHessian(self):
+        self.testValue()  # Hessian requires value to be OK
         problem = self.generateProblem()
-        x = np.array([-1, .1])
+        x = np.array([1, 1])
         H = problem.getFHessian(x)
 
         def f(x):

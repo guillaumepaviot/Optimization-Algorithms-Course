@@ -22,6 +22,9 @@ class testSolver(unittest.TestCase):
     """
     Solver = SolverUnconstrained
 
+    def set_(self, solver):
+        self.Solver = solver
+
     def testConstructor(self):
         """
         check the constructor

@@ -17,6 +17,9 @@ class testProblem(unittest.TestCase):
 
     problem = RobotTool
 
+    def set_(self, problem):
+        self.problem = problem
+
     def generateProblem(self):
         q0 = np.zeros(3)
         pr = np.array([.5, 2.0 / 3.0])
@@ -30,7 +33,6 @@ class testProblem(unittest.TestCase):
     def testValue1(self):
         problem = self.generateProblem()
         # in this configuration, p = pr
-        # todo: test the cost
         x = np.pi / 180.0 * np.array([90, -90, -90])
         phi, J = problem.evaluate(x)
         c = problem.l * (x - problem.q0) @ (x - problem.q0)
@@ -39,7 +41,6 @@ class testProblem(unittest.TestCase):
     def testValue2(self):
         problem = self.generateProblem()
         # in this configuration, q = q0
-        # todo: test the cost
         x = np.zeros(3)
         phi, J = problem.evaluate(x)
         e = np.array([1.5 + 1. / 3. - .5, -2. / 3.])
@@ -47,8 +48,9 @@ class testProblem(unittest.TestCase):
         self.assertAlmostEqual(c, phi @phi)
 
     def testJacobian(self):
+        self.testValue1()  # the Value should be OK
         problem = self.generateProblem()
-        x = np.array([-1, .5, 1])
+        x = np.pi / 180.0 * np.array([90, -90, -90])
         flag, _, _ = check_mathematical_program(problem.evaluate, x, 1e-5)
         self.assertTrue(flag)
 

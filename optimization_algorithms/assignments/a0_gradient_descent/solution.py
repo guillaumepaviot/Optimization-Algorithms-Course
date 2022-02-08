@@ -2,7 +2,8 @@ import numpy as np
 import sys
 sys.path.append("..")
 
-from optimization_algorithms.interface.nlp_solver import  NLPSolver
+from optimization_algorithms.interface.nlp_solver import NLPSolver
+
 
 class Solver0(NLPSolver):
 
@@ -12,11 +13,10 @@ class Solver0(NLPSolver):
         ----
         NLPSolver.__init__
         """
-        
+
         # in case you want to initialize some class members or so...
 
-
-    def solve(self) :
+    def solve(self):
         """
 
         See Also:
@@ -24,7 +24,7 @@ class Solver0(NLPSolver):
         NLPSolver.solve
 
         """
-        
+
         # write your code here
 
         # use the following to get an initialization:
@@ -37,4 +37,4 @@ class Solver0(NLPSolver):
         # now code some loop that iteratively queries the problem and updates x til convergenc....
 
         # finally:
-        return x 
+        return x

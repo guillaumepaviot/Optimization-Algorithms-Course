@@ -3,11 +3,12 @@ from .mathematical_program import MathematicalProgram
 
 class MathematicalProgramTraced(MathematicalProgram):
 
-    def __init__(self, mathematical_program):
+    def __init__(self, mathematical_program, max_evaluate=1000):
         self.mathematical_program = mathematical_program
 
         self.counter_evaluate = 0
         self.counter_hessian = 0
+        self.max_evaluate = max_evaluate
 
         self.trace_x = []
         self.trace_phi = []
@@ -32,6 +33,8 @@ class MathematicalProgramTraced(MathematicalProgram):
     def evaluate(self, x):
         """
         """
+        if self.counter_evaluate > self.max_evaluate:
+            raise RuntimeError("too many iterations, returning")
         self.counter_evaluate += 1
         phi, J = self.mathematical_program.evaluate(x)
         self.appendToTrace(x, phi, J)

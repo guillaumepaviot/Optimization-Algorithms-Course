@@ -48,6 +48,32 @@ class MathematicalProgram():
         """
         raise NotImplementedError()
 
+    def getCost(self, x):
+        """
+        cost terms at point x; i.e.
+        f(x) + phi_sos(x)^T phi_sos(x)
+
+        Returns:
+        ----
+        output: float
+        """
+
+        types = self.getFeatureTypes()
+        index_f = [i for i, x in enumerate(types) if x == OT.f]
+        assert(len(index_f) <= 1)  # at most, only one term of type OT.f
+        index_r = [i for i, x in enumerate(types) if x == OT.sos]
+
+        def f(x):
+            phi, _ = self.evaluate(x)
+            c = 0  # cost
+            if len(index_f) > 0:
+                c += phi[index_f][0]
+            if len(index_r) > 0:
+                c += phi[index_r].T @ phi[index_r]
+            return c
+
+        return f(x)
+
     def getDimension(self):
         """
         return the dimensionality of x
