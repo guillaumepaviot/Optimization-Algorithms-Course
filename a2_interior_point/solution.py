@@ -8,7 +8,7 @@ from optimization_algorithms.interface.objective_type import OT
 
 class SolverInteriorPoint(NLPSolver):
 
-    def __init__(self, verbose=0, **kwargs):
+    def __init__(self, verbose=False, **kwargs):
         """
         See also:
         ----
@@ -104,7 +104,8 @@ class SolverInteriorPoint(NLPSolver):
         count = 1
 
         fx, grad, H = self.getVars(x, mu)
-        print(f"Problem : {self.problem.report(verbose=True)} \n x_init = {x} \nfx_init = {fx} \n")
+        
+        if self.verbose : print(f"Problem : {self.problem.report(verbose=True)} \n x_init = {x} \nfx_init = {fx} \n")
         
 
         while mu_iter <= 1000:
@@ -140,11 +141,12 @@ class SolverInteriorPoint(NLPSolver):
             mu_iter += 1
             mu *= rho_mu
 
-        print(f"Solution : {x}")
-        print(f"Calls to program : {count}")
-        print(f"Iterations over mu : {mu_iter}")
-        print(f"Newton steps : {newton_iter}")
-        print(f"Backtracking iterations : {backtracking_iter}")
-        print(f"Time elapsed : {time.time()-start_time}s")
-        print("\n")
+        if self.verbose :
+            print(f"Solution : {x}")
+            print(f"Calls to program : {count}")
+            print(f"Iterations over mu : {mu_iter}")
+            print(f"Newton steps : {newton_iter}")
+            print(f"Backtracking iterations : {backtracking_iter}")
+            print(f"Time elapsed : {time.time()-start_time}s")
+            print("\n")
         return x
