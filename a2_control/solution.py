@@ -104,8 +104,8 @@ class LQR(MathematicalProgram):
         Jh_right = np.zeros((self.n, 2 * self.K * self.n))
         Jh_right[:, -self.n:] = np.eye(self.n)
 
-        phi = np.hstack((sos, h_left, h_right))        
-        J = np.hstack((Jsos[np.newaxis, ...], Jh_left[np.newaxis, ...], Jh_right[np.newaxis, ...]))[0, :, :]
+        phi = np.concatenate((sos, h_left, h_right))        
+        J = np.concatenate((Jsos, Jh_left, Jh_right), axis=0)
         return  phi, J
 
 
