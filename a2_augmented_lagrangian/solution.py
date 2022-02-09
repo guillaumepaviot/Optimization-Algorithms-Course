@@ -28,12 +28,12 @@ class SolverAugmentedLagrangian(NLPSolver):
         # get all sum-of-square features
         self.index_r = [i for i, x in enumerate(types) if x == OT.sos]
         # get all inequalities features
-        self.index_g = [i for i, x in enumerate(types) if x == OT.ineq]
+        self.index_g = np.array([i for i, x in enumerate(types) if x == OT.ineq], dtype=np.int64)
         # get all equalities features
         self.index_h = [i for i, x in enumerate(types) if x == OT.eq]
 
-        self.lambda_lagrangian  = np.zeros(len(self.problem.getFeatureTypes()))
-        self.kappa_lagrangian  = np.zeros(len(self.problem.getFeatureTypes()))
+        self.lambda_lagrangian  = np.zeros(len(self.index_g))
+        self.kappa_lagrangian  = np.zeros(len(self.index_h))
 
 
     def getVars(self, x, mu, nu):
@@ -54,23 +54,23 @@ class SolverAugmentedLagrangian(NLPSolver):
             H += 2 * J[self.index_r].T @ J[self.index_r]
 
         if len(self.index_g) > 0:
-            for i in self.index_g:
-                lambda_lag = self.lambda_lagrangian[i]
-                c +=  (phi[i] >= 0 or lambda_lag > 0) * mu * phi[i]**2 + lambda_lag * phi[i]
-                grad +=  (2 * (phi[i] >= 0 or lambda_lag > 0) * mu * phi[i] + lambda_lag) * J[i]
-                H += 2 * mu * (phi[i] >= 0 or lambda_lag > 0) * np.outer(J[i], J[i])
+            mask = self.index_g[np.logical_or(phi[self.index_g] >= 0, self.lambda_lagrangian > 0)]
+            c += mu*phi[mask].T @ phi[mask] + self.lambda_lagrangian.T @ phi[self.index_g]
+            grad += 2*mu*J[mask].T @ phi[mask] + self.lambda_lagrangian.T @ J[self.index_g]
+            H += 2*mu*J[mask].T @ J[mask]
 
         if len(self.index_h) > 0:
-            for i in self.index_h:
-                kappa_lag = self.kappa_lagrangian[i]
-                c += nu * phi[i]**2 + kappa_lag * phi[i]
-                grad +=  ( 2 * nu * phi[i] + kappa_lag ) * J[i]
-                H += 2 * nu * np.outer(J[i], J[i])
+            c += nu*phi[self.index_h].T @ phi[self.index_h] + self.kappa_lagrangian.T @ phi[self.index_h]
+            grad +=  2*nu*J[self.index_h].T @ phi[self.index_h] + self.kappa_lagrangian.T @ J[self.index_h]
+            H += 2*nu*J[self.index_h].T @ J[self.index_h]
 
 
         # Check H is positive definite
-        if np.any(np.linalg.eigvals(H) < 0):
+        try :
+            np.any(np.linalg.eigvals(H) < 0)
             H += (abs(min(np.linalg.eigvals(H)))+.02) * np.eye(self.dim)
+        except np.linalg.LinAlgError :
+            print(H)
 
         return c, grad, H
 
@@ -104,7 +104,7 @@ class SolverAugmentedLagrangian(NLPSolver):
         # tolerance  
         theta = self.kwargs.get("theta", 1e-3)
         # tolerance on constraains
-        epsilon = self.kwargs.get("epsilon", 1e3)
+        epsilon = self.kwargs.get("epsilon", 1e-3)
         # damping
         lamda = self.kwargs.get("lambda", 1e-3) 
         
@@ -160,11 +160,9 @@ class SolverAugmentedLagrangian(NLPSolver):
 
                 count += 1
                 phi, J = self.problem.evaluate(x)
-                for i in self.index_g:
-                    self.lambda_lagrangian[i] = np.max(self.lambda_lagrangian[i] +  2 * mu * phi[i], 0)
-                
-                for i in self.index_h:
-                    self.kappa_lagrangian[i] = self.kappa_lagrangian[i] +  2 * nu * phi[i] 
+                self.lambda_lagrangian = np.maximum(self.lambda_lagrangian + 2*mu*phi[self.index_g], np.zeros(len(self.lambda_lagrangian)))
+                self.kappa_lagrangian = 2*nu*phi[self.index_h]
+
                 
             if np.linalg.norm(xt-x) < theta and np.all(phi[self.index_g] < epsilon) and np.all(abs(phi[self.index_h]) < epsilon) : break
                 
