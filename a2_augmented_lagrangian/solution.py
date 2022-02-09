@@ -66,11 +66,9 @@ class SolverAugmentedLagrangian(NLPSolver):
 
 
         # Check H is positive definite
-        try :
-            np.any(np.linalg.eigvals(H) < 0)
+        if np.any(np.linalg.eigvals(H) < 0):
+            print("works")
             H += (abs(min(np.linalg.eigvals(H)))+.02) * np.eye(self.dim)
-        except np.linalg.LinAlgError :
-            print(H)
 
         return c, grad, H
 
@@ -161,7 +159,7 @@ class SolverAugmentedLagrangian(NLPSolver):
                 count += 1
                 phi, J = self.problem.evaluate(x)
                 self.lambda_lagrangian = np.maximum(self.lambda_lagrangian + 2*mu*phi[self.index_g], np.zeros(len(self.lambda_lagrangian)))
-                self.kappa_lagrangian = 2*nu*phi[self.index_h]
+                self.kappa_lagrangian += 2*nu*phi[self.index_h]
 
                 
             if np.linalg.norm(xt-x) < theta and np.all(phi[self.index_g] < epsilon) and np.all(abs(phi[self.index_h]) < epsilon) : break
